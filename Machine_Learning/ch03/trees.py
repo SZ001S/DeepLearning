@@ -1,3 +1,4 @@
+import imp
 from math import log 
 import math
 import operator 
@@ -145,3 +146,28 @@ def createTree(dataSet, labels):
                                                   subLabels)                                                  
     return myTree
 
+
+# 使用决策树的分类函数
+def classify(inputTree, featLabels, testVec):
+    # 前三行是剥离字典第一个键值对，包含一个子字典
+    firstStr = list(inputTree.keys())[0]
+    secondDict = inputTree[firstStr]
+    featIndex = featLabels.index(firstStr)
+    for key in secondDict.keys():
+        if testVec[featIndex] == key:
+            if type(secondDict[key]).__name__ == 'dict':
+                classLabel = classify(secondDict[key], featLabels, testVec)
+            else:   classLabel = secondDict[key]
+    return classLabel
+
+# 使用pickle模块存储决策树模型
+def storeTree(inputTree, filename):
+    import pickle
+    fw = open(filename, 'wb')
+    pickle.dump(inputTree, fw)
+    fw.close()
+
+def grabTree(filename):
+    import pickle
+    fr = open(filename, 'rb')
+    return pickle.load(fr)
