@@ -65,10 +65,68 @@ class NameDataset(Dataset):
         return self.len
     
     def getCountryDict(self):
-        pass
+        country_dict = dict()
+        for idx, country_name in enumerate(self.country_list, 0):
+            country_dict[country_name] = idx
+        return country_dict
 
     def idx2country(self, index):
-        pass
+        return self.country_list[index]
 
     def getCountriesNum(self):
-        pass
+        return self.country_num
+
+# Parameters
+HIDDEN_SIZE = 100
+BATCH_SIZE = 256
+N_LAYER = 2
+N_CHARS = 128
+USE_GPU = True
+
+# 实例化数据集对象
+trainset = NameDataset(is_train_set=True)
+trainloader = DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True)
+testset = NameDataset(is_train_set=False)
+testloader = DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False)
+
+# N_COUNTRY is the output size of our model
+N_COUNTRY = trainset.getCountriesNum()
+
+# 使用GPU的操作封装成函数
+def create_tensor(tensor):
+    if USE_GPU:
+        device = torch.device("cuda:0")
+        tensor = tensor.to(device)
+    return tensor
+
+
+# Model Design
+class RNNClassifier(torch.nn.Module):
+    def __init__(
+        self, input_size, 
+        hidden_size, 
+        output_size, n_layers=1, bidirectional=True):
+        super(RNNClassifier, self).__init__()
+        self.hidden_size = hidden_size
+        self.n_layers = n_layers
+        self.n_directions = 2 if bidirectional else 1
+
+        self.embedding = torch.nn.Embedding(input_size, hidden_size)
+        self.gru = torch.nn.GRU(
+            hidden_size, hidden_size, n_layers, 
+            bidirectional=bidirectional
+        )
+
+        self.fc = torch.nn.Linear(
+            hidden_size * self.n_directions, 
+            output_size
+        )
+
+    def _init_hidden(self, batch_size):
+        hidden = torch.zeros(
+            self.n_layers * self.n_directions,
+            batch_size, self.hidden_size
+        )
+        return create_tensor(hidden)
+
+    
