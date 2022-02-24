@@ -1,4 +1,6 @@
 # Name Classification
+import enum
+import time
 import torch
 import gzip
 import csv
@@ -10,6 +12,9 @@ from torch.utils.data import Dataset
 # 会用到relu函数
 import torch.nn.functional as F
 import torch.optim as optim
+from zmq import device
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 # Preparing Data
@@ -22,9 +27,9 @@ class NameDataset(Dataset):
     # super()用法；
     # https://blog.csdn.net/qq_14935437/article/details/81458506
     def __init__(self, is_train_set=True) -> None:
-        filename = '课件\PyTorch深度学习实践\names_train.csv.gz' \
+        filename = r'pytorch_tutorial/课件/PyTorch深度学习实践/names_train.csv.gz' \
             if is_train_set else \
-                '课件\PyTorch深度学习实践\names_test.csv.gz'
+                r'pytorch_tutorial/课件/PyTorch深度学习实践/names_test.csv.gz'
         
         # 文本文件中的 回车 在不同操作系统中所用的字符表示有所不同。
         # Windows:
@@ -81,6 +86,7 @@ HIDDEN_SIZE = 100
 BATCH_SIZE = 256
 N_LAYER = 2
 N_CHARS = 128
+N_EPOCHS = 100
 USE_GPU = True
 
 # 实例化数据集对象
@@ -129,4 +135,125 @@ class RNNClassifier(torch.nn.Module):
         )
         return create_tensor(hidden)
 
+    def forward(self, input, seq_lengths):
+        # input shape : B x S -> S x B
+        input = input.t()
+        batch_size = input.size(1)
+
+        hidden = self._init_hidden(batch_size)
+        embedding = self.embedding(input)
+
+        # pack them up
+        # 对于一些列需要插值保证形状一致为一个正常矩阵
+        gru_input = torch._pack_padded_sequence(embedding, seq_lengths.to('cpu'), batch_first=False)
+
+        output, hidden = self.gru(gru_input, hidden)
+        if self.n_directions == 2:
+            # dim=0代表是列，dim=1代表是行
+            hidden_cat = torch.cat([hidden[-1], hidden[-2]], dim=1)
+        else:
+            hidden_cat = hidden[-1]
+        fc_output = self.fc(hidden_cat)
+        return fc_output
     
+
+# We have to sort the batch element by length of sequence
+def name2list(name):
+    arr = [ord(c) for c in name]
+    return arr, len(arr)
+
+def make_tensors(names, countries):
+    sequence_and_lengths = [name2list(name) for name in names]
+    name_sequences = [s1[0] for s1 in sequence_and_lengths]
+    seq_lengths = torch.LongTensor([s1[1] for s1 in sequence_and_lengths])
+    countries = countries.long()
+
+    # make tensor of name, BatchSize x SeqLen
+    seq_tensor = torch.zeros(len(name_sequences), seq_lengths.max()).long()
+    for idx, (seq, seq_len) in enumerate(zip(name_sequences, seq_lengths), 0):
+        seq_tensor[idx, :seq_len] = torch.LongTensor(seq)
+    
+    # sort by length to use torch._pack_padded_sequence()
+    seq_lengths, perm_idx = seq_lengths.sort(dim=0, descending=True)
+    seq_tensor = seq_tensor[perm_idx]
+    countries = countries[perm_idx]
+
+    return create_tensor(seq_tensor), \
+           create_tensor(seq_lengths), \
+           create_tensor(countries)
+
+
+def trainModel():
+    total_loss = 0
+    # 注意这里从1开始枚举
+    for i, (names, countries) in enumerate(trainloader, 1):
+        inputs, seq_lengths, target = make_tensors(names, countries)
+    # 1. forward - compute output of model
+    # 2. forward - comput loss
+    # 3. zero grad
+    # 4. backward
+    # 5. update
+    output = classifier(inputs, seq_lengths)
+    loss = criterion(output, target)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    total_loss += loss.item()
+    if i % 10 == 0:
+        print(f'[{time_since}] Epoch {epoch}', end='')
+        print(f'[{i * len(inputs)}/{len(trainset)}]', end='')
+        print(f'loss={total_loss / (i * len(inputs))}')
+    return total_loss
+
+
+def testModel():
+    correct = 0
+    total = len(testset)
+    print("evaluating trained model ...")
+    with torch.no_grad():
+        for i, (names, countries) in enumerate(testloader, 1):
+            inputs, seq_lengths, target = make_tensors(names, countries)
+            output = classifier(inputs, seq_lengths)
+            pred = output.max(dim=1, keepdim=True)[1]
+            correct += pred.eq(target.view_as(pred)).sum().item()
+        
+        percent = f'{100 * correct / total : .2f}'
+        print(f'Test set: Accuracy {correct}/{total} {percent}%')
+    
+    return correct / total
+
+# main cycle
+def time_since(since):
+    s = time.time() - since
+    m = np.math.floor(s / 60)
+    s -= m * 60
+    return f'{m:d}m {s:d}s'
+
+if __name__ == '__main__':
+    classifier = RNNClassifier(N_CHARS, HIDDEN_SIZE, N_COUNTRY, N_LAYER)
+
+    if USE_GPU:
+        device = torch.device('cuda:0')
+        classifier.to(device)
+
+    # criterion and optimizer
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
+
+    start = time.time()
+    print(f'Training for {N_EPOCHS}')
+    acc_list = []
+    for epoch in range(1, N_EPOCHS + 1):
+        # Train cycle
+        trainModel()
+        acc = testModel()
+        acc_list.append(acc)
+    
+    epoch = np.arange(1, len(acc_list) + 1, 1)
+    acc_list = np.array(acc_list)
+    plt.plot(epoch, acc_list)
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.grid()
+    plt.show()
