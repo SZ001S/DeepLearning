@@ -12,7 +12,6 @@ from torch.utils.data import Dataset
 # 会用到relu函数
 import torch.nn.functional as F
 import torch.optim as optim
-from zmq import device
 import numpy as np
 import matplotlib.pyplot as plt
 
