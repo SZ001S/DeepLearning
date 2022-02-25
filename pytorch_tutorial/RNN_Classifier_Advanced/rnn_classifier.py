@@ -8,6 +8,8 @@ from torchvision import transforms
 # from torchvision import datasets
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+# 修改部分
+from torch.nn.utils.rnn import pack_padded_sequence
 #-------------------------------
 # 会用到relu函数
 import torch.nn.functional as F
@@ -144,7 +146,7 @@ class RNNClassifier(torch.nn.Module):
 
         # pack them up
         # 对于一些列需要插值保证形状一致为一个正常矩阵
-        gru_input = torch._pack_padded_sequence(embedding, seq_lengths.to('cpu'), batch_first=False)
+        gru_input = pack_padded_sequence(embedding, seq_lengths)
 
         output, hidden = self.gru(gru_input, hidden)
         if self.n_directions == 2:
@@ -163,6 +165,7 @@ def name2list(name):
 
 def make_tensors(names, countries):
     sequence_and_lengths = [name2list(name) for name in names]
+    # 取出所有的列表中每个姓名的ASCII码序列
     name_sequences = [s1[0] for s1 in sequence_and_lengths]
     seq_lengths = torch.LongTensor([s1[1] for s1 in sequence_and_lengths])
     countries = countries.long()
@@ -187,22 +190,24 @@ def trainModel():
     # 注意这里从1开始枚举
     for i, (names, countries) in enumerate(trainloader, 1):
         inputs, seq_lengths, target = make_tensors(names, countries)
-    # 1. forward - compute output of model
-    # 2. forward - comput loss
-    # 3. zero grad
-    # 4. backward
-    # 5. update
-    output = classifier(inputs, seq_lengths)
-    loss = criterion(output, target)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+        # 1. forward - compute output of model
+        # 2. forward - comput loss
+        # 3. zero grad
+        # 4. backward
+        # 5. update
+        # 注意缩进
+        output = classifier(inputs, seq_lengths)
+        loss = criterion(output, target)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-    total_loss += loss.item()
-    if i % 10 == 0:
-        print(f'[{time_since}] Epoch {epoch}', end='')
-        print(f'[{i * len(inputs)}/{len(trainset)}]', end='')
-        print(f'loss={total_loss / (i * len(inputs))}')
+        total_loss += loss.item()
+
+        if i % 10 == 0:
+            print(f'[{time_since}] Epoch {epoch}', end='')
+            print(f'[{i * len(inputs)}/{len(trainset)}]', end='')
+            print(f'loss={total_loss / (i * len(inputs))}')
     return total_loss
 
 
