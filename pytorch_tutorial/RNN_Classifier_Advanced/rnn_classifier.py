@@ -16,9 +16,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
-import os 
+import os
 # os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-os.environ['CUDA_VISIBLE_DEVICES']='0'
+# 这个pack_padded_sequence()函数有问题 无法使用cuda 只能使用cpu跑 速度还行
+os.environ['CUDA_VISIBLE_DEVICES']='1'
 print(torch.cuda.device_count())
 
 
