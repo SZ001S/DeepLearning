@@ -32,9 +32,9 @@ class NameDataset(Dataset):
     # super()用法；
     # https://blog.csdn.net/qq_14935437/article/details/81458506
     def __init__(self, is_train_set=True) -> None:
-        filename = r'pytorch_tutorial/课件/PyTorch深度学习实践/names_train.csv.gz' \
+        filename = r'../课件/PyTorch深度学习实践/names_train.csv.gz' \
             if is_train_set else \
-                r'pytorch_tutorial/课件/PyTorch深度学习实践/names_test.csv.gz'
+                r'../课件/PyTorch深度学习实践/names_test.csv.gz'
         
         # 文本文件中的 回车 在不同操作系统中所用的字符表示有所不同。
         # Windows:
@@ -163,7 +163,7 @@ def name2list(name):
 # 使用GPU的操作封装成函数
 def create_tensor(tensor):
     if USE_GPU:
-        device = torch.device("cuda:1" if torch.cuda.is_available() else 'cpu')
+        device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
         tensor = tensor.to(device)
     return tensor
 
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     classifier = RNNClassifier(N_CHARS, HIDDEN_SIZE, N_COUNTRY, N_LAYER)
 
     if USE_GPU:
-        device = torch.device("cuda:1" if torch.cuda.is_available() else 'cpu')
+        device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
         classifier.to(device)
 
     # criterion and optimizer
