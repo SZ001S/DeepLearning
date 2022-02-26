@@ -16,6 +16,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
+import os 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 
 # Preparing Data
@@ -99,13 +101,6 @@ testloader = DataLoader(testset, batch_size=BATCH_SIZE, shuffle=False)
 # N_COUNTRY is the output size of our model
 N_COUNTRY = trainset.getCountriesNum()
 
-# 使用GPU的操作封装成函数
-def create_tensor(tensor):
-    if USE_GPU:
-        device = torch.device("cuda:0")
-        tensor = tensor.to(device)
-    return tensor
-
 
 # Model Design
 class RNNClassifier(torch.nn.Module):
@@ -162,6 +157,14 @@ class RNNClassifier(torch.nn.Module):
 def name2list(name):
     arr = [ord(c) for c in name]
     return arr, len(arr)
+
+# 使用GPU的操作封装成函数
+def create_tensor(tensor):
+    if USE_GPU:
+        device = torch.device("cuda:1")
+        tensor = tensor.to(device)
+    return tensor
+
 
 def make_tensors(names, countries):
     sequence_and_lengths = [name2list(name) for name in names]
@@ -238,7 +241,7 @@ if __name__ == '__main__':
     classifier = RNNClassifier(N_CHARS, HIDDEN_SIZE, N_COUNTRY, N_LAYER)
 
     if USE_GPU:
-        device = torch.device('cuda:0')
+        device = torch.device('cuda:1')
         classifier.to(device)
 
     # criterion and optimizer
