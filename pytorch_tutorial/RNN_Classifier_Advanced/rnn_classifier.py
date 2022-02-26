@@ -17,8 +17,8 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 import os 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-# os.environ['CUDA_VISIBLE_DEVICES']='0,1' 
+# os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES']='0'
 print(torch.cuda.device_count())
 
 
