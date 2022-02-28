@@ -36,13 +36,23 @@ img_resize_2 = trans_compose(img)
 writer.add_image("Resize", img_resize_2, 1)
 
 
-# RandomCrop 随机裁剪
+# RandomCrop 随机裁剪 这个比较重要
 trans_random = transforms.RandomCrop((500, 600))
 trans_compose_2 = transforms.Compose([trans_random, trans_totensor])
 for i in range(10):
     # 将transforms类型的操作打包
     img_crop = trans_compose_2(img)
     writer.add_image("RandomCrop", img_crop, i)
+
+# 关注输入和输出类型
+# 多看官方文档
+# 关注方法需要什么参数
+# 不知道返回值的时候
+# print
+# print(type())
+# 对变量设置断点debug
+# 最后要将变量totensor 转变成tensor类型 才可以使用CPU或GPU运算
+
 
 
 
