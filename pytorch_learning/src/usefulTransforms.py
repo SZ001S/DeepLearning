@@ -43,7 +43,9 @@ for i in range(10):
     # 将transforms类型的操作打包
     img_crop = trans_compose_2(img)
     writer.add_image("RandomCrop", img_crop, i)
+writer.close()
 
+""""
 # 关注输入和输出类型
 # 多看官方文档
 # 关注方法需要什么参数
@@ -52,12 +54,4 @@ for i in range(10):
 # print(type())
 # 对变量设置断点debug
 # 最后要将变量totensor 转变成tensor类型 才可以使用CPU或GPU运算
-
-
-
-
-
-
-
-writer.close()
-
+"""
