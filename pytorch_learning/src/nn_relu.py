@@ -8,10 +8,10 @@ inputs = torch.tensor([[1, -0.5],
 inputs = torch.reshape(inputs, (-1, 1, 2, 2))
 print(inputs.shape)
 
-
 dataset = torchvision.datasets.CIFAR10('../../../dataset/CIFAR10', train=False,
                                        transform=torchvision.transforms.ToTensor())
 dataloader = DataLoader(dataset, batch_size=64)
+
 
 class Model(torch.nn.Module):
     def __init__(self):
@@ -22,6 +22,7 @@ class Model(torch.nn.Module):
     def forward(self, x):
         x = self.sigmoid1(x)
         return x
+
 
 model = Model()
 # print(model(inputs))

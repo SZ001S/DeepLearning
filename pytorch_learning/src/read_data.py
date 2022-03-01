@@ -1,7 +1,8 @@
 from torch.utils.data import Dataset
-import cv2
+# import cv2
 from PIL import Image
 import os
+
 
 class MyData(Dataset):
     def __init__(self, root_dir, label_dir):
@@ -19,6 +20,7 @@ class MyData(Dataset):
 
     def __len__(self):
         return len(self.img_path)
+
 
 root_dir = 'datasets/hymenoptera_data/train'
 ants_label_dir = 'ants'
