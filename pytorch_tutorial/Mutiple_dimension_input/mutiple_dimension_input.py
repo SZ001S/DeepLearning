@@ -1,4 +1,4 @@
-from turtle import forward
+# from turtle import forward
 import numpy as np
 import torch
 
@@ -49,5 +49,3 @@ for epoch in range(100):
 
     # Updata
     optimizer.step()
-
-
