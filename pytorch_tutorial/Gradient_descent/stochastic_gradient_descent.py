@@ -14,7 +14,7 @@ def forward(x):
 def loss(x, y):
     y_pred = forward(x)
     return (y_pred - y) ** 2
-        
+
 
 def gradient(x, y):
     return 2 * x * (x * w - y)
@@ -25,7 +25,7 @@ print('Predict (before training)', 4, forward(4))
 for epoch in range(100):
     for x, y in zip(x_data, y_data):
         grad = gradient(x, y)
-        w = w -  0.01 * grad
+        w = w - 0.01 * grad
         print('\tgrad: ', x, y, grad)
         l = loss(x, y)
     print('prograss: ', epoch, 'w=', w, 'loss=', l)
