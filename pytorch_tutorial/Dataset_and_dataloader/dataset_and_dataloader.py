@@ -57,7 +57,11 @@ criterion = torch.nn.BCELoss(reduction='mean')
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 # -------------------------------------------------#
 
-
+"""
+这里就是将规整好的数据用DataLoader类型的类封装起来
+在训练的每一个epoch中通过枚举enumerate类来解包放入
+模型中并反向传播优化模型 得到结果
+"""
 for epoch in range(100):
     for i, data in enumerate(train_loader, 0):
         # 1. Prepare data
