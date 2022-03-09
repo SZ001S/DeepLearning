@@ -1,15 +1,13 @@
 #  import Package
 import torch
-# 与数据集相关 DataLoader相关
-#------------------------------
-from torchvision import transforms
-from torchvision import datasets
-from torch.utils.data import DataLoader
-#-------------------------------
+# -------------------------------
 # 会用到relu函数
 import torch.nn.functional as F
-import torch.optim as optim
-
+from torch.utils.data import DataLoader
+from torchvision import datasets
+# 与数据集相关 DataLoader相关
+# ------------------------------
+from torchvision import transforms
 
 # 1.Prepare Dataset
 batch_size = 64
@@ -20,35 +18,36 @@ batch_size = 64
 # 0.1307和0.3081是根据MNIST数据集的分布计算得来的
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.1307, ), (0.3081, ))
+    transforms.Normalize((0.1307,), (0.3081,))
 ])
 
 train_dataset = datasets.MNIST(
-    root='../dataset/mnist/', 
-    train=True, 
+    root='../dataset/mnist/',
+    train=True,
     download=True,
     transform=transform
 )
 
 train_loader = DataLoader(
-    train_dataset, 
-    shuffle=True, 
+    train_dataset,
+    shuffle=True,
     batch_size=batch_size
 )
 
 test_dataset = datasets.MNIST(
-    root='../dataset/mnist/', 
-    train=False, 
+    root='../dataset/mnist/',
+    train=False,
     download=True,
     transform=transform
 )
 
 # 这里的shuffle=False保证了实验的观察环境条件一致
 test_loader = DataLoader(
-    train_dataset, 
-    shuffle=False, 
+    train_dataset,
+    shuffle=False,
     batch_size=batch_size
 )
+
 
 # 2.Design Model
 class Net(torch.nn.Module):
@@ -76,15 +75,14 @@ class Net(torch.nn.Module):
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model = Net().to(device)
 
-
 # 3.Construct Loss and Optimizer
 # 在使用这些工具时又会在构建计算图
 # 实例化一个Loss器
 criterion = torch.nn.CrossEntropyLoss().to(device='cuda:0')
 # 实列化一个优化器
 optimizer = torch.optim.SGD(
-    model.parameters(), 
-    lr=0.01, 
+    model.parameters(),
+    lr=0.01,
     momentum=0.5
 )
 
@@ -108,7 +106,7 @@ def train(epoch):
         running_loss += loss.item()
         if batch_index % 300 == 299:
             # running_loss累计300个样本训练后取平均输出
-            print(f'[{epoch+1}, {batch_index+1} loss: {running_loss / 300:.3f}]')
+            print(f'[{epoch + 1}, {batch_index + 1} loss: {running_loss / 300:.3f}]')
             running_loss = 0.0
 
 
@@ -137,9 +135,10 @@ def test():
             # .size(0)就是labels这个矩阵的dim=0的分量数值大小
             total += labels.size(0)
             # 比较相等 真为1 假为0
-            correct += (predicted == labels).sum().item()   
-    print('Accuracy on test set: %d %%' \
-        % (100 * correct / total))
+            correct += (predicted == labels).sum().item()
+    print('Accuracy on test set: %d %%'
+          % (100 * correct / total))
+
 
 if __name__ == '__main__':
     for epoch in range(10):
@@ -148,5 +147,3 @@ if __name__ == '__main__':
         # 也可以 if epoch % 10 == 9: 
         # 表示经过10轮测试一次
         test()
-
-
