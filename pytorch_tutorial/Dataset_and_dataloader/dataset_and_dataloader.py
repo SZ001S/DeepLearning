@@ -13,29 +13,25 @@ class DiabetesDataset(Dataset):
         self.x_data = torch.from_numpy(xy[:, :-1])
         self.y_data = torch.from_numpy(xy[:, [-1]])
 
-
-    # 魔法方法magic function 
+    # 魔法方法magic function
     # 用来支持一些下标操作
     def __getitem__(self, index):
         return self.x_data[index], self.y_data[index]
-
 
     # This magic function returns length of dataset
     def __len__(self):
         return self.len
 
 
-dataset = DiabetesDataset()
-train_loader = DataLoader(dataset=dataset, 
-                          batch_size=32, 
-                          shuffle=True, 
-                          num_workers=2)
-
+# dataset = DiabetesDataset()
+# train_loader = DataLoader(dataset=dataset,
+#                           batch_size=32,
+#                           shuffle=True,
+#                           num_workers=2)
 
 dataset = DiabetesDataset('pytorch_tutorial\课件\PyTorch深度学习实践\diabetes.csv.gz')
-train_loader = DataLoader(dataset=dataset, batch_size=32, 
+train_loader = DataLoader(dataset=dataset, batch_size=32,
                           shuffle=True, num_workers=2)
-
 
 
 class Model(torch.nn.Module):
@@ -54,12 +50,12 @@ class Model(torch.nn.Module):
 
 
 model = Model()
-#-------------------------------------------------#
+# -------------------------------------------------#
 
 criterion = torch.nn.BCELoss(reduction='mean')
 
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-#-------------------------------------------------#
+# -------------------------------------------------#
 
 
 for epoch in range(100):
